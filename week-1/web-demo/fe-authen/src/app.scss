@@ -1,0 +1,43 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.app-container {
+  background-color: #f4f4f4;
+  width: 100vw;
+  height: 100vh;
+  padding-top: 80px;
+  .login-container {
+    width: 60%;
+    max-width: 400px;
+    background-color: #fff;
+    border: 2px double #000;
+    margin: auto;
+    padding: 20px;
+    .login-title {
+      text-align: center;
+    }
+    .input-container {
+      margin: 20px auto 10px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 10px;
+      .username-title {
+        flex: 1;
+        font-size: 16px;
+      }
+      #username {
+        flex: 3;
+        padding: 10px;
+        font-size: 16px;
+      }
+    }
+    .login-button {
+      width: 100%;
+      padding: 10px 20px;
+    }
+  }
+}
