@@ -4,5 +4,25 @@
   box-sizing: border-box;
 }
 
-.main-app-container {
+// .main-app-container {
+// }
+
+.component-navigation {
+  display: flex;
+}
+
+.component-navigation .nav {
+  padding: 4px 10px;
+  border: 1px solid #333;
+  margin: 10px;
+}
+
+.component-navigation .nav:hover {
+  background-color: #e3e3e3;
+  cursor: pointer;
+}
+
+.component-navigation .nav.active {
+  font-weight: bold;
+  color: rgb(234, 70, 33);
 }

@@ -21,7 +21,33 @@ class userController {
     let dataUser;
     try {
       dataUser = await user.find({ username: req.body.username }).exec();
-      console.log("dataUser", dataUser);
+      // console.log("dataUser", dataUser);
+    } catch (error) {
+      res.status(400).send({
+        error: true,
+        find: false,
+      });
+    }
+
+    if (dataUser === null || dataUser.length == 0) {
+      res.status(200).send({
+        error: false,
+        find: false,
+      });
+    } else {
+      res.status(200).send({
+        error: false,
+        find: true,
+      });
+    }
+  };
+
+  hasEmail = async (req, res) => {
+    // console.log("req.body", req.body);
+    let dataUser;
+    try {
+      dataUser = await user.find({ email: req.body.email }).exec();
+      // console.log("dataUser", dataUser);
     } catch (error) {
       res.status(400).send({
         error: true,
@@ -49,7 +75,7 @@ class userController {
       dataUser = await user
         .find({ username: req.body.username, password: req.body.password })
         .exec();
-      console.log("dataUser", dataUser);
+      // console.log("dataUser", dataUser);
     } catch (error) {
       res.status(400).send({
         error: true,
@@ -68,6 +94,39 @@ class userController {
         success: true,
       });
     }
+  };
+
+  signUp = async (req, res) => {
+    console.log("req.body", req.body);
+    try {
+      const newUser = new user({
+        email: req.body.email,
+        password: req.body.password,
+        username: req.body.username,
+      });
+      newUser
+        .save()
+        .then((data) => {
+          console.log("data", data);
+          res.status(200).send({
+            error: false,
+            success: true,
+          });
+        })
+        .catch((error) => {
+          console.log("error.message", error.message);
+          res.status(400).send({
+            error: true,
+            success: false,
+          });
+        });
+    } catch (error) {
+      res.status(400).send({
+        error: true,
+        success: false,
+      });
+    }
+    // res.status(200).send({ run: true });
   };
 }
 

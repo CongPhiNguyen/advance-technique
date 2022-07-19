@@ -92,7 +92,7 @@ function Login(props) {
   return (
     <div className="app-container">
       <div className="login-container">
-        <h1 className="login-title">Login</h1>
+        <h1 className="login-title">LOGIN</h1>
         <div className="input-container">
           <label htmlFor="username" className="input-title">
             Username
