@@ -73,7 +73,8 @@ function Login(props) {
       })
       .catch((error) => {
         // console.log(error.response.status === 404);
-        toast(error.message);
+        // toast(error.message);
+        toast("Login failed!");
         // if (error.response.status === 404) {
         //   setIsUsernameExist(false);
         // }
@@ -91,6 +92,11 @@ function Login(props) {
 
   return (
     <div className="app-container">
+      <div className="step-container">
+        <div className="step step-1">Login</div>
+        <div className="connector"></div>
+        <div className="step step-2">OTP</div>
+      </div>
       <div className="login-container">
         <h1 className="login-title">LOGIN</h1>
         <div className="input-container">

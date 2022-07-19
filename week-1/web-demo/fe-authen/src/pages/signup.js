@@ -77,7 +77,10 @@ export default function SignUp() {
         console.log("data", data);
         toast("Signup successfully!");
       })
-      .catch((error) => {});
+      .catch((error) => {
+        console.log(error);
+        toast("Signup failed!");
+      });
   };
 
   const pageRef = {

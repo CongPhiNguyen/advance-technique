@@ -1,4 +1,7 @@
 const user = require("../models/user");
+const crypto = require("crypto");
+const bcrypt = require("bcrypt");
+const SALT_ROUND = 10;
 
 class userController {
   getUser = async (req, res) => {
@@ -70,12 +73,11 @@ class userController {
 
   checkLoginInfo = async (req, res) => {
     console.log("req.body Login", req.body);
+    console.log();
     let dataUser;
     try {
-      dataUser = await user
-        .find({ username: req.body.username, password: req.body.password })
-        .exec();
-      // console.log("dataUser", dataUser);
+      dataUser = await user.findOne({ username: req.body.username }).exec();
+      console.log("dataUser", dataUser);
     } catch (error) {
       res.status(400).send({
         error: true,
@@ -89,19 +91,26 @@ class userController {
         success: false,
       });
     } else {
-      res.status(200).send({
-        error: false,
-        success: true,
-      });
+      if (bcrypt.compareSync(req.body.password, dataUser.password))
+        res.status(200).send({
+          error: false,
+          success: true,
+        });
+      else
+        res.status(400).send({
+          error: false,
+          success: false,
+        });
     }
   };
 
   signUp = async (req, res) => {
     console.log("req.body", req.body);
+    const hashPass = bcrypt.hashSync(req.body.password, SALT_ROUND);
     try {
       const newUser = new user({
         email: req.body.email,
-        password: req.body.password,
+        password: hashPass,
         username: req.body.username,
       });
       newUser
