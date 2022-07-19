@@ -91,7 +91,9 @@ class userController {
         success: false,
       });
     } else {
-      if (bcrypt.compareSync(req.body.password, dataUser.password))
+      if (
+        bcrypt.compareSync(req.body.password + dataUser.salt, dataUser.password)
+      )
         res.status(200).send({
           error: false,
           success: true,
@@ -106,12 +108,14 @@ class userController {
 
   signUp = async (req, res) => {
     console.log("req.body", req.body);
-    const hashPass = bcrypt.hashSync(req.body.password, SALT_ROUND);
+    const salt = crypto.randomBytes(20).toString("hex");
+    const hashPass = bcrypt.hashSync(req.body.password + salt, SALT_ROUND);
     try {
       const newUser = new user({
         email: req.body.email,
         password: hashPass,
         username: req.body.username,
+        salt: salt,
       });
       newUser
         .save()
