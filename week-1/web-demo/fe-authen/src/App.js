@@ -8,14 +8,16 @@ import { useState, useRef } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import SignUp from "./pages/signup";
-
+import Home from "./pages/home";
 const App = () => {
   const [appState, setAppState] = useState("login");
   useEffect(() => {
     document.title = "Authentication Application";
   });
 
-  const loginRef = useRef();
+  const changeComponent = (component) => {
+    setAppState(component);
+  };
 
   return (
     <div className="main-app-container">
@@ -38,7 +40,13 @@ const App = () => {
         </p>
       </div>
       <div className="component-container">
-        {appState == "login" ? <Login /> : <SignUp />}
+        {appState == "login" ? (
+          <Login changeComponent={(component) => changeComponent()} />
+        ) : appState == "signup" ? (
+          <SignUp changeComponent={(component) => changeComponent()} />
+        ) : (
+          <Home changeComponent={(component) => changeComponent()} />
+        )}
       </div>
 
       <ToastContainer />

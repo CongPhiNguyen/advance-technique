@@ -13,18 +13,29 @@
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
+    align-items: center;
+    .step.current {
+      display: block;
+      padding: 4px 20px;
+      border: 1px solid #000;
+      background-color: #fff;
+      color: #333;
+    }
+    .step {
+      display: block;
+      padding: 4px 20px;
+      border: 1px solid #fff;
+      background-color: #e2e2e2;
+      color: #fff;
+    }
+    .connector {
+      display: block;
+      width: 100px;
+      height: 2px;
+      background-color: #ff0000;
+    }
   }
-  .step-container .step {
-    display: block;
-    padding: 4px 20px;
-    border: 1px solid #000;
-    background-color: #fff;
-  }
-  .step-container .step {
-    display: block;
-    padding: 4px 20px;
-    border: 1px solid #000;
-  }
+
   .login-container {
     width: 60%;
     max-width: 400px;
@@ -59,6 +70,40 @@
       color: red;
     }
     .login-button {
+      width: 100%;
+      padding: 10px 20px;
+    }
+  }
+
+  .otp-container {
+    width: 60%;
+    max-width: 400px;
+    background-color: #fff;
+    border: 2px double #000;
+    margin: auto;
+    padding: 20px;
+    .otp-title {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .input-container {
+      margin: 0px auto 4px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 10px;
+      .input-title {
+        flex: 1;
+        font-size: 16px;
+      }
+      .input-box {
+        flex: 3;
+        padding: 10px;
+        font-size: 16px;
+        margin-left: 10px;
+      }
+    }
+    .send-otp-button {
       width: 100%;
       padding: 10px 20px;
     }
