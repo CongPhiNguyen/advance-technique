@@ -1,80 +1,50 @@
-import React, {
-  useEffect,
-  useState,
-  useImperativeHandle,
-  useRef,
-  useInsertionEffect,
-} from "react";
+import React, { useState, useRef } from "react";
 import "./login.scss";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
+import ReCAPTCHA from "react-google-recaptcha";
+const CAPTCHA_SITE_KEY = "6LcjxgkhAAAAAHIhfKuWWgc07YASZozNywrkQM_6";
+const CAPTCHA_SECRET_KEY = "6LcjxgkhAAAAAMZvHXuGUUIV--2dNrP9sjKzbh1i";
 
 function Login(props) {
-  // useEffect(() => {
-  //   axios
-  //     .get("http://localhost:5000/api/user", {})
-  //     .then((data) => {
-  //       console.log(data);
-  //     })
-  //     .catch((error) => {
-  //       console.log(error.message);
-  //     });
-  //   // axios.post("http://localhost:5000/api/has-user",{})
-  // });
-
   const [isUsernameExist, setIsUsernameExist] = useState(true);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [currentUsername, setCurrentUsername] = useState("");
   const [countDownTime, setCountDownTime] = useState(0);
-
-  // useImperativeHandle(ref, () => ({
-  //   setUsernameExist() {
-  //     setIsUsernameExist(false);
-  //   },
-  // }));
+  const [captchaVerify, setCaptchaVerify] = useState(false);
 
   const checkUserExist = async (username) => {
-    await axios
+    return await axios
       .post("http://localhost:5000/api/user/exist-username", {
         username: username,
       })
       .then((data) => {
-        // console.log(data.data.find);
         if (data.data.find === false) {
           setIsUsernameExist(false);
-          toast("Username is not exist!");
+          return false;
         } else {
           setIsUsernameExist(true);
-          checkCorrectLoginInfo(
-            pageRef.usernameRef.current.value,
-            pageRef.passwordRef.current.value
-          );
+          return true;
         }
       })
       .catch((error) => {
-        // console.log(error.response.status === 404);
         toast(error.message);
-        // if (error.response.status === 404) {
-        //   setIsUsernameExist(false);
-        // }
+        return false;
       });
   };
 
-  const checkCorrectLoginInfo = async (username, password) => {
+  const checkCorrectLoginInfo = async (username, password, otp) => {
     await axios
       .post("http://localhost:5000/api/user/check-login-info", {
         username: username,
         password: password,
+        otp: otp,
+        time: new Date(),
       })
       .then((data) => {
-        // console.log(data.data.find);
-        if (data.data.success === false) {
-          toast("Password not match");
+        if (data.data.success === true) {
+          toast("Login successfully");
+          props.changeComponent("home");
         } else {
-          sendOTP(pageRef.usernameRef.current.value);
-          setCurrentUsername(pageRef.usernameRef.current.value);
-          setCurrentStep(2);
-          pageRef.usernameRef.current.value = "";
+          toast("Login failed");
         }
       })
       .catch((error) => {
@@ -82,7 +52,20 @@ function Login(props) {
       });
   };
 
-  const sendOTP = (username) => {
+  const sendOTP = async (username) => {
+    if (countDownTime > 0) {
+      return;
+    }
+    let userExist = await checkUserExist(pageRef.usernameRef.current.value);
+    if (!isUsernameExist || !userExist) {
+      toast("Username is not exist");
+      return;
+    }
+    if (!captchaVerify) {
+      toast("You must verify the captcha before request OTP");
+      return;
+    }
+
     axios
       .post("http://localhost:5000/api/otp/make-otp-login", {
         username: username,
@@ -93,9 +76,8 @@ function Login(props) {
         );
         setCountDownTime(timeCountDown);
         let timeID = setInterval(() => {
-          console.log(countDownTime);
           setCountDownTime((prevVal) => {
-            if (prevVal == 0) clearInterval(timeID);
+            if (prevVal === 0) clearInterval(timeID);
             return prevVal - 1;
           });
         }, 1000);
@@ -103,29 +85,18 @@ function Login(props) {
       .catch((err) => console.log(err));
   };
 
-  const submitOTP = (username, otp) => {
-    axios
-      .post("http://localhost:5000/api/otp/check-otp", {
-        username: username,
-        otp: otp,
-        time: new Date(),
-      })
-      .then((data) => {
-        console.log(data.data);
-        if (data.data.success == true) {
-          toast("Authentication OK");
-          props.changeComponent("home");
-        } else {
-          toast(data.data.message);
-        }
-      })
-      .catch((error) => {
-        toast(error.message);
-      });
-  };
-
-  const loginHandle = () => {
-    checkUserExist(pageRef.usernameRef.current.value);
+  const loginHandle = async () => {
+    const userExist = await checkUserExist(pageRef.usernameRef.current.value);
+    if (!userExist) {
+      toast("Username is not exist");
+      return;
+    }
+    checkCorrectLoginInfo(
+      pageRef.usernameRef.current.value,
+      pageRef.passwordRef.current.value,
+      pageRef.otpRef.current.value
+    );
+    // submitOTP();
   };
 
   const pageRef = {
@@ -134,81 +105,89 @@ function Login(props) {
     otpRef: useRef(null),
   };
 
+  const captchaChange = (value) => {
+    console.log("Captcha verified!");
+    setCaptchaVerify(true);
+  };
+  const captchaExpire = (value) => {
+    toast("Captcha expired!");
+    console.log("Captcha expired!");
+    setCaptchaVerify(false);
+  };
+
   return (
     <div className="app-container">
-      <div className="step-container">
-        <div
-          className={currentStep == 1 ? "step step-1 current" : "step step-1"}
-        >
-          Login
+      <div className="login-container">
+        <h1 className="login-title">LOGIN</h1>
+        <div className="input-container">
+          <label htmlFor="username" className="input-title">
+            Username
+          </label>
+          <input
+            type="text"
+            id="username"
+            className="input-box"
+            ref={pageRef.usernameRef}
+            onBlur={() => {
+              checkUserExist(pageRef.usernameRef.current.value);
+            }}
+          />
         </div>
-        <div className="connector"></div>
-        <div
-          className={currentStep == 2 ? "step step-2 current" : "step step-2"}
-        >
-          OTP
+        {!isUsernameExist ? (
+          <p className="error-input">Username is not exist</p>
+        ) : null}
+        <div className="input-container">
+          <label htmlFor="password" className="input-title">
+            Password
+          </label>
+          <input
+            type="password"
+            id="password"
+            className="input-box"
+            ref={pageRef.passwordRef}
+          />
         </div>
-      </div>
-      {currentStep === 1 ? (
-        <div className="login-container">
-          <h1 className="login-title">LOGIN</h1>
-          <div className="input-container">
-            <label htmlFor="username" className="input-title">
-              Username
-            </label>
-            <input
-              type="text"
-              id="username"
-              class="input-box"
-              ref={pageRef.usernameRef}
-            />
-          </div>
-          {!isUsernameExist ? (
-            <p className="error-input">Username is not exist</p>
-          ) : null}
-          <div className="input-container">
-            <label htmlFor="password" className="input-title">
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              class="input-box"
-              ref={pageRef.passwordRef}
-            />
-          </div>
-          <button className="login-button" onClick={() => loginHandle()}>
-            Login
-          </button>
+        <div className="captcha-container">
+          <ReCAPTCHA
+            sitekey={CAPTCHA_SITE_KEY}
+            onChange={captchaChange}
+            onExpired={captchaExpire}
+          />
         </div>
-      ) : (
-        <div className="otp-container">
-          <h1 className="otp-title">OTP</h1>
-          <div className="input-container">
-            <label htmlFor="otp" className="input-title">
-              OTP
-            </label>
+        <div className="input-container">
+          <label htmlFor="otp" className="input-title">
+            OTP
+          </label>
+          <div className="input-concrete">
             <input
               type="text"
               id="otp"
-              class="input-box"
+              className="input-box"
               ref={pageRef.otpRef}
               defaultValue=""
             />
+            <button
+              className={
+                isUsernameExist && countDownTime <= 0 && captchaVerify
+                  ? "send-otp-button"
+                  : "send-otp-button disable"
+              }
+              onClick={() => {
+                if (isUsernameExist && countDownTime <= 0 && captchaVerify)
+                  sendOTP(pageRef.usernameRef.current.value);
+              }}
+            >
+              Send
+            </button>
           </div>
-          {countDownTime > 0 ? (
-            <p className="count-down">OTP valid in {countDownTime} seconds</p>
-          ) : null}
-          <button
-            className="send-otp-button"
-            onClick={() =>
-              submitOTP(currentUsername, pageRef.otpRef.current.value)
-            }
-          >
-            Submit
-          </button>
         </div>
-      )}
+        {countDownTime > 0 ? (
+          <p className="count-down">OTP valid in {countDownTime} seconds</p>
+        ) : null}
+        <button className="login-button" onClick={() => loginHandle()}>
+          Login
+        </button>
+      </div>
     </div>
   );
 }

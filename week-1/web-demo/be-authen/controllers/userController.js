@@ -2,6 +2,7 @@ const user = require("../models/user");
 const crypto = require("crypto");
 const bcrypt = require("bcrypt");
 const SALT_ROUND = 10;
+const otpController = require("./otpController");
 
 class userController {
   getUser = async (req, res) => {
@@ -73,36 +74,49 @@ class userController {
 
   checkLoginInfo = async (req, res) => {
     console.log("req.body Login", req.body);
-    console.log();
-    let dataUser;
-    try {
-      dataUser = await user.findOne({ username: req.body.username }).exec();
-      console.log("dataUser", dataUser);
-    } catch (error) {
+    const validateOTP = await otpController.checkOTP(
+      req.body.username,
+      req.body.otp,
+      req.body.time
+    );
+    if (validateOTP.success) {
+      let dataUser;
+      try {
+        dataUser = await user.findOne({ username: req.body.username }).exec();
+        console.log("dataUser", dataUser);
+      } catch (error) {
+        res.status(400).send({
+          error: true,
+          success: false,
+        });
+      }
+      if (dataUser === null || dataUser.length == 0) {
+        res.status(200).send({
+          error: false,
+          success: false,
+        });
+      } else {
+        if (
+          bcrypt.compareSync(
+            req.body.password + dataUser.salt,
+            dataUser.password
+          )
+        )
+          res.status(200).send({
+            error: false,
+            success: true,
+          });
+        else
+          res.status(400).send({
+            error: false,
+            success: false,
+          });
+      }
+    } else {
       res.status(400).send({
         error: true,
         success: false,
       });
-    }
-
-    if (dataUser === null || dataUser.length == 0) {
-      res.status(200).send({
-        error: false,
-        success: false,
-      });
-    } else {
-      if (
-        bcrypt.compareSync(req.body.password + dataUser.salt, dataUser.password)
-      )
-        res.status(200).send({
-          error: false,
-          success: true,
-        });
-      else
-        res.status(400).send({
-          error: false,
-          success: false,
-        });
     }
   };
 

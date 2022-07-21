@@ -35,7 +35,6 @@
       background-color: #ff0000;
     }
   }
-
   .login-container {
     width: 60%;
     max-width: 400px;
@@ -46,6 +45,13 @@
     .login-title {
       text-align: center;
       margin-bottom: 32px;
+    }
+    .captcha-container {
+      // border: 1px solid #333;
+      padding: 10px;
+    }
+    .captcha-container div {
+      margin: auto;
     }
     .input-container {
       margin: 0px auto 4px;
@@ -73,39 +79,23 @@
       width: 100%;
       padding: 10px 20px;
     }
-  }
-
-  .otp-container {
-    width: 60%;
-    max-width: 400px;
-    background-color: #fff;
-    border: 2px double #000;
-    margin: auto;
-    padding: 20px;
-    .otp-title {
-      text-align: center;
-      margin-bottom: 32px;
-    }
-    .input-container {
-      margin: 0px auto 4px;
+    .input-concrete {
       display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding: 10px;
-      .input-title {
-        flex: 1;
-        font-size: 16px;
-      }
       .input-box {
-        flex: 3;
         padding: 10px;
         font-size: 16px;
         margin-left: 10px;
+        max-width: 176px;
       }
-    }
-    .send-otp-button {
-      width: 100%;
-      padding: 10px 20px;
+      .send-otp-button {
+        flex: 1;
+        padding: 10px 20px;
+      }
+      .send-otp-button.disable {
+        background-color: #fff;
+        border: 1px solid #e3e3e3;
+        color: #999;
+      }
     }
   }
 }

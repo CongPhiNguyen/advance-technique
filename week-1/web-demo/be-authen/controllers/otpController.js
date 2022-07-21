@@ -15,6 +15,32 @@ var transporter = nodemailer.createTransport({
   },
 });
 
+var sendMailOTP = (email, code, qrCodeURL) => {
+  var mailOptions = {
+    from: "phiroudnodemailer@gmail.com",
+    to: email,
+    subject: "QR CODE",
+    text: `Code : ${code}`,
+    html: `Code: ${code}. <br/> You can also use the qrcode bellow`,
+    attachments: [
+      {
+        filename: "image.png",
+        path: qrCodeURL,
+        cid: "qrcode", //same cid value as in the html img src
+      },
+    ],
+  };
+  console.log(mailOptions.html);
+  // });
+  transporter.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log("Email sent: " + info.response);
+    }
+  });
+};
+
 class otpController {
   makeOTPLogin = async (req, res) => {
     console.log(req.body);
@@ -80,41 +106,25 @@ class otpController {
 
     let code = crypto.randomBytes(4).toString("hex");
 
-    let qrCodeURL;
     QRCode.toDataURL(code)
       .then((url) => {
         console.log(url);
-        qrCodeURL = url;
-        var mailOptions = {
-          from: "phiroudnodemailer@gmail.com",
-          to: req.body.email,
-          subject: "QR CODE",
-          text: `Code : ${code}`,
-          html: `Code: ${code}. <br/> You can also use the qrcode bellow`,
-          attachments: [
-            {
-              filename: "image.png",
-              path: qrCodeURL,
-              cid: "qrcode", //same cid value as in the html img src
-            },
-          ],
-        };
-        console.log(mailOptions.html);
-        // });
-        transporter.sendMail(mailOptions, function (error, info) {
-          if (error) {
-            console.log(error);
-          } else {
-            console.log("Email sent: " + info.response);
-          }
-        });
+        sendMailOTP(req.body.email, code, url);
         let newOTP = new otp({
           username: req.body.username,
           email: req.body.email,
           time: new Date(),
           otpString: code,
         });
-
+        user
+          .findOneAndUpdate({ email: req.body.email }, { verified: true })
+          .then((data) => {})
+          .catch((err) => {
+            return res.status(400).send({
+              error: err.message,
+              success: false,
+            });
+          });
         newOTP
           .save()
           .then((data) => {
@@ -136,44 +146,46 @@ class otpController {
       });
   };
 
-  checkOTP = (req, res) => {
-    console.log("req.body", req.body);
-    otp
-      .findOne({ username: req.body.username })
+  checkOTP = async (username, otpCode, time) => {
+    return await otp
+      .findOne({ username: username })
       .then((data) => {
         if (data == null) {
-          res.status(200).send({
+          return {
             success: false,
-            message: "Can''t find user",
-          });
-          return;
+            userExist: false,
+            otpExpired: false,
+            error: false,
+          };
         } else {
-          console.log(data);
-          if (data.otpString === req.body.otp) {
+          if (data.otpString === otpCode) {
             const clientTime = new Date(req.body.time).getTime();
             const serverTime = new Date(data.time).getTime();
-            // console.log(-new Date(data.time).getTime());
             if (clientTime - serverTime > TIME_OUT) {
-              res.status(200).send({
+              return {
                 success: false,
-                message: "Time out",
-              });
+                userExist: true,
+                otpExpired: true,
+                error: false,
+              };
             } else {
-              res.status(200).send({
+              return {
                 success: true,
-                message: "Authentication OK",
-              });
-              return;
+                userExist: true,
+                otpExpired: false,
+                error: false,
+              };
             }
           }
         }
       })
       .catch((error) => {
-        res.status(200).send({
-          success: false,
-          message: "Some error happended",
-        });
-        return;
+        return {
+          success: true,
+          userExist: false,
+          otpExpired: false,
+          error: true,
+        };
       });
   };
 }
