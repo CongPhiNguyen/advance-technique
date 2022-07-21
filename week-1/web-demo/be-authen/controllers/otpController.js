@@ -1,6 +1,5 @@
 const otp = require("../models/otp");
 const user = require("../models/user");
-
 const crypto = require("crypto");
 const bcrypt = require("bcrypt");
 const TIME_OUT = 1000 * 60 * 1;
@@ -147,6 +146,7 @@ class otpController {
   };
 
   checkOTP = async (username, otpCode, time) => {
+    //TODO: handle trường hợp chưa nhấn nút send OTP
     return await otp
       .findOne({ username: username })
       .then((data) => {

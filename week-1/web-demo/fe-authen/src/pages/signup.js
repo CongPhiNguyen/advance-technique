@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
+import "./signup.scss";
 
 export default function SignUp(props) {
   const [isUsernameExist, setIsUsernameExist] = useState(false);
@@ -8,6 +9,8 @@ export default function SignUp(props) {
   const [isValidEmail, setIsValidEmail] = useState(true);
   const [signUpState, setSignUpState] = useState("signup");
   const [countDownTime, setCountDownTime] = useState(0);
+  const [captchaVerify, setCaptchaVerify] = useState(false);
+
   const checkUsernameExist = (username) => {
     axios
       .post("http://localhost:5000/api/user/exist-username", {
@@ -153,107 +156,114 @@ export default function SignUp(props) {
 
   return (
     <div className="app-container">
-      <div className="step-container">
-        <div
-          className={currentStep == 1 ? "step step-1 current" : "step step-1"}
-        >
-          Sign up
-        </div>
-        <div className="connector"></div>
-        <div
-          className={currentStep == 2 ? "step step-2 current" : "step step-2"}
-        >
-          OTP
-        </div>
-      </div>
-      {currentStep === 1 ? (
-        <div className="login-container">
-          <h1 className="login-title">SIGN UP</h1>
-          <div className="input-container">
-            <label htmlFor="username" className="input-title">
-              Username
-            </label>
-            <input
-              type="text"
-              id="username"
-              class="input-box"
-              ref={pageRef.username}
-              onBlur={() => {
-                checkUsernameExist(pageRef.username.current.value);
-              }}
-            />
-          </div>
-          {isUsernameExist ? (
-            <p className="error-input">Username is exist</p>
-          ) : null}
-          <div className="input-container">
-            <label htmlFor="username" className="input-title">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              class="input-box"
-              ref={pageRef.email}
-              onBlur={() => {
-                checkEmailExist(pageRef.email.current.value);
-                checkValidEmailFormat(pageRef.email.current.value);
-              }}
-            />
-          </div>
-          {emailCheckComp()}
-          <div className="input-container">
-            <label htmlFor="password" className="input-title">
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              class="input-box"
-              ref={pageRef.password}
-            />
-          </div>
-          <button
-            className="login-button"
-            onClick={() => {
-              signupUser(
-                pageRef.username.current.value,
-                pageRef.email.current.value,
-                pageRef.password.current.value
-              );
+      <div className="signup-container">
+        <h1 className="signup-title">SIGN UP</h1>
+        <div className="input-container">
+          <label htmlFor="username" className="input-title">
+            Username
+          </label>
+          <input
+            type="text"
+            id="username"
+            class="input-box"
+            ref={pageRef.username}
+            onBlur={() => {
+              checkUsernameExist(pageRef.username.current.value);
             }}
-          >
-            SIGN UP
-          </button>
+          />
         </div>
-      ) : (
-        <div className="otp-container">
-          <h1 className="otp-title">OTP</h1>
-          <div className="input-container">
-            <label htmlFor="otp" className="input-title">
-              OTP
-            </label>
+        {isUsernameExist ? (
+          <p className="error-input">Username is exist</p>
+        ) : null}
+        <div className="input-container">
+          <label htmlFor="username" className="input-title">
+            Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            class="input-box"
+            ref={pageRef.email}
+            onBlur={() => {
+              checkEmailExist(pageRef.email.current.value);
+              checkValidEmailFormat(pageRef.email.current.value);
+            }}
+          />
+        </div>
+        {emailCheckComp()}
+        <div className="input-container">
+          <label htmlFor="password" className="input-title">
+            Password
+          </label>
+          <input
+            type="password"
+            id="password"
+            class="input-box"
+            ref={pageRef.password}
+          />
+        </div>
+        <div className="input-container">
+          <label htmlFor="password" className="input-title">
+            Confirm password
+          </label>
+          <input
+            type="password"
+            id="password"
+            class="input-box"
+            ref={pageRef.password}
+          />
+        </div>
+        <div className="input-container">
+          <label htmlFor="otp" className="input-title">
+            OTP
+          </label>
+          <div className="input-concrete">
             <input
               type="text"
               id="otp"
-              class="input-box"
+              className="input-box"
               ref={pageRef.otpRef}
               defaultValue=""
             />
+            <button
+              className={
+                isUsernameExist && countDownTime <= 0 && captchaVerify
+                  ? "send-otp-button"
+                  : "send-otp-button disable"
+              }
+              onClick={() => {
+                if (isUsernameExist && countDownTime <= 0 && captchaVerify)
+                  sendOTP(pageRef.usernameRef.current.value);
+              }}
+            >
+              Send
+            </button>
           </div>
-          {countDownTime > 0 ? (
-            <p className="count-down">OTP valid in {countDownTime} seconds</p>
-          ) : null}
-          <button
-            className="send-otp-button"
-            onClick={() =>
-              submitOTP(currentUsername, pageRef.otpRef.current.value)
-            }
-          >
-            Submit
-          </button>
         </div>
-      )}
+        {countDownTime > 0 ? (
+          <p className="count-down">OTP valid in {countDownTime} seconds</p>
+        ) : null}
+        <button
+          className="send-otp-button"
+          onClick={() =>
+            submitOTP(currentUsername, pageRef.otpRef.current.value)
+          }
+        >
+          Submit
+        </button>
+        <button
+          className="login-button"
+          onClick={() => {
+            signupUser(
+              pageRef.username.current.value,
+              pageRef.email.current.value,
+              pageRef.password.current.value
+            );
+          }}
+        >
+          SIGN UP
+        </button>
+      </div>
     </div>
   );
 }

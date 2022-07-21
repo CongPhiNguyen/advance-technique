@@ -1,24 +1,18 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 .app-container {
   background-color: #f4f4f4;
   width: 100vw;
   height: calc(100vh - 52px);
   padding-top: 20px;
-  .login-container {
+  .signup-container {
     width: 60%;
     max-width: 500px;
     background-color: #fff;
     border: 2px double #000;
     margin: auto;
     padding: 20px;
-    .login-title {
+    .signup-title {
       text-align: center;
-      margin-bottom: 32px;
+      margin-bottom: 10px;
     }
     .captcha-container {
       padding: 10px;

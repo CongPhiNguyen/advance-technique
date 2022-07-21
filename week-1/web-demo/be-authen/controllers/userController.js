@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const SALT_ROUND = 10;
 const otpController = require("./otpController");
 
+// TODO: verified user when sign up
 class userController {
   getUser = async (req, res) => {
     // console.log("req", req);

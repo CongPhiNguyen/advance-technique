@@ -3,14 +3,42 @@ import "./login.scss";
 import axios from "axios";
 import { toast } from "react-toastify";
 import ReCAPTCHA from "react-google-recaptcha";
+// TODO: put here into enviroment varibale
 const CAPTCHA_SITE_KEY = "6LcjxgkhAAAAAHIhfKuWWgc07YASZozNywrkQM_6";
 const CAPTCHA_SECRET_KEY = "6LcjxgkhAAAAAMZvHXuGUUIV--2dNrP9sjKzbh1i";
 
+// TODO: count login attempt
 function Login(props) {
+  // Variable
   const [isUsernameExist, setIsUsernameExist] = useState(true);
+  const [isValidPassword, setIsValidPassword] = useState(false);
+  const [failedPasswordMessage, setFailedPasswordMessage] = useState("");
   const [countDownTime, setCountDownTime] = useState(0);
   const [captchaVerify, setCaptchaVerify] = useState(false);
+  const [errorCaptcha, setErrorCaptcha] = useState(false);
+  const [loginAttempt, setLoginAttempt] = useState(false);
+  // Ref
+  const pageRef = {
+    usernameRef: useRef(null),
+    passwordRef: useRef(null),
+    otpRef: useRef(null),
+  };
 
+  // Captcha section
+  const captchaChange = (value) => {
+    console.log("Captcha verified!");
+    setCaptchaVerify(true);
+  };
+  const captchaExpire = (value) => {
+    toast("Captcha expired!");
+    console.log("Captcha expired!");
+    setCaptchaVerify(false);
+  };
+  const captchaError = (value) => {
+    setErrorCaptcha(true);
+  };
+
+  // Validation section
   const checkUserExist = async (username) => {
     return await axios
       .post("http://localhost:5000/api/user/exist-username", {
@@ -31,6 +59,18 @@ function Login(props) {
       });
   };
 
+  const checkValidatePassword = (password) => {
+    if (password.length < 8) {
+      setFailedPasswordMessage("Password must has 8 or more characters.");
+      setIsValidPassword(false);
+      return false;
+    }
+    //NOTE: Add more validate password constraint here
+    setIsValidPassword(true);
+    return true;
+  };
+
+  // Login and otp section
   const checkCorrectLoginInfo = async (username, password, otp) => {
     await axios
       .post("http://localhost:5000/api/user/check-login-info", {
@@ -87,10 +127,17 @@ function Login(props) {
 
   const loginHandle = async () => {
     const userExist = await checkUserExist(pageRef.usernameRef.current.value);
+    // Check constraint to login here
     if (!userExist) {
       toast("Username is not exist");
       return;
     }
+
+    if (!isValidPassword) {
+      toast("Password is not valid");
+      return;
+    }
+
     checkCorrectLoginInfo(
       pageRef.usernameRef.current.value,
       pageRef.passwordRef.current.value,
@@ -99,26 +146,12 @@ function Login(props) {
     // submitOTP();
   };
 
-  const pageRef = {
-    usernameRef: useRef(null),
-    passwordRef: useRef(null),
-    otpRef: useRef(null),
-  };
-
-  const captchaChange = (value) => {
-    console.log("Captcha verified!");
-    setCaptchaVerify(true);
-  };
-  const captchaExpire = (value) => {
-    toast("Captcha expired!");
-    console.log("Captcha expired!");
-    setCaptchaVerify(false);
-  };
-
   return (
     <div className="app-container">
       <div className="login-container">
         <h1 className="login-title">LOGIN</h1>
+
+        {/* input */}
         <div className="input-container">
           <label htmlFor="username" className="input-title">
             Username
@@ -145,15 +178,32 @@ function Login(props) {
             id="password"
             className="input-box"
             ref={pageRef.passwordRef}
+            onBlur={() =>
+              checkValidatePassword(pageRef.passwordRef.current.value)
+            }
           />
         </div>
+        {!isValidPassword ? (
+          <p className="error-input">{failedPasswordMessage}</p>
+        ) : null}
+
+        {/* Captcha */}
+        {captchaError ? (
+          <p className="note-captcha">
+            Incase captcha didn't show up, please <a href="/">refesh</a> the
+            page
+          </p>
+        ) : null}
+
         <div className="captcha-container">
           <ReCAPTCHA
             sitekey={CAPTCHA_SITE_KEY}
             onChange={captchaChange}
             onExpired={captchaExpire}
+            onError={captchaError}
           />
         </div>
+
         <div className="input-container">
           <label htmlFor="otp" className="input-title">
             OTP
@@ -184,6 +234,7 @@ function Login(props) {
         {countDownTime > 0 ? (
           <p className="count-down">OTP valid in {countDownTime} seconds</p>
         ) : null}
+
         <button className="login-button" onClick={() => loginHandle()}>
           Login
         </button>
